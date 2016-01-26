@@ -1,0 +1,40 @@
+<beans:beans xmlns="http://www.springframework.org/schema/security"
+			 xmlns:beans="http://www.springframework.org/schema/beans"
+			 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			 xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+	http://www.springframework.org/schema/security
+	http://www.springframework.org/schema/security/spring-security-3.2.xsd">
+
+    <beans:bean id="customAuthenticationFailureHandler" class="com.sam_solutions.app.handler.CustomAuthenticationFailureHandler"/>
+
+	<http auto-config="true" use-expressions="true">
+        <intercept-url pattern="/profile/**" access="isAuthenticated() and hasRole('USER')"/>
+        <intercept-url pattern="/settings/**" access="isAuthenticated() and hasRole('USER')"/>
+        <intercept-url pattern="/search/**" access="isAuthenticated() and hasRole('USER')"/>
+		<intercept-url pattern="/feed/**" access="isAuthenticated() and hasRole('USER')"/>
+		<intercept-url pattern="/my_followings/**" access="isAuthenticated() and hasRole('USER')"/>
+		<intercept-url pattern="/admin/**" access="isAuthenticated() and hasRole('ADMIN')"/>
+        <access-denied-handler error-page="/403" />
+		<form-login
+				login-page="/login"
+				default-target-url="/default"
+				authentication-failure-url="/login?error"
+				username-parameter="login"
+				password-parameter="password"
+                authentication-failure-handler-ref="customAuthenticationFailureHandler"/>
+		<logout logout-success-url="/login?logout"  />
+		<csrf/>
+	</http>
+
+	<authentication-manager alias="authenticationManager">
+		<authentication-provider>
+			<jdbc-user-service data-source-ref="dataSource"
+							   users-by-username-query=
+									   "select login, password, access from users where login=?"
+							   authorities-by-username-query=
+									   "select login, role from users where login=?" />
+		</authentication-provider>
+	</authentication-manager>
+
+</beans:beans>

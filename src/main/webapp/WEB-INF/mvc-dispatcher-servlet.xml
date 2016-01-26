@@ -1,0 +1,119 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+       xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/beans     
+        http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+        http://www.springframework.org/schema/context 
+        http://www.springframework.org/schema/context/spring-context-3.0.xsd
+        http://www.springframework.org/schema/mvc
+        http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd
+        http://www.springframework.org/schema/tx
+        http://www.springframework.org/schema/tx/spring-tx.xsd
+        http://www.springframework.org/schema/data/jpa
+        http://www.springframework.org/schema/data/jpa/spring-jpa.xsd
+        http://www.springframework.org/schema/jdbc
+        http://www.springframework.org/schema/jdbc/spring-jdbc.xsd">
+
+    <context:component-scan base-package="com.sam_solutions.*" />
+
+    <mvc:annotation-driven />
+    <mvc:interceptors>
+        <bean id="localeChangeInterceptor"
+              class="org.springframework.web.servlet.i18n.LocaleChangeInterceptor">
+            <property name="paramName" value="language" />
+        </bean>
+    </mvc:interceptors>
+
+    <bean id="localeResolver"
+          class="org.springframework.web.servlet.i18n.SessionLocaleResolver">
+        <property name="defaultLocale" value="en" />
+    </bean>
+
+    <bean id="viewResolver"
+          class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <property name="prefix">
+            <value>/WEB-INF/pages/</value>
+        </property>
+        <property name="suffix">
+            <value>.jsp</value>
+        </property>
+    </bean>
+
+    <bean class="org.springframework.context.support.ReloadableResourceBundleMessageSource"
+          id="messageSource">
+        <property name="basenames">
+            <list>
+                <value>classpath:localization</value>
+            </list>
+        </property>
+        <property name="defaultEncoding" value="UTF-8" />
+        <property name="fileEncodings" value="UTF-8" />
+    </bean>
+
+    <bean id="validationMessageSource" class="org.springframework.context.support.ReloadableResourceBundleMessageSource">
+        <property name="basename" value="ValidationMessages" />
+        <property name="defaultEncoding" value="UTF-8" />
+        <property name="fileEncodings" value="UTF-8" />
+    </bean>
+
+    <bean name="validator"  class="org.springframework.validation.beanvalidation.LocalValidatorFactoryBean">
+        <property name="validationMessageSource">
+            <ref bean="validationMessageSource"/>
+        </property>
+    </bean>
+
+    <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+        <property name="maxUploadSize" value="100000000"/>
+    </bean>
+
+    <jpa:repositories base-package="com.sam_solutions.app.dao" />
+
+    <bean name="userService" class="com.sam_solutions.app.service.UserService" />
+    <bean name="userRelationService" class="com.sam_solutions.app.service.UserRelationService" />
+    <bean name="postService" class="com.sam_solutions.app.service.PostService" />
+    <bean name="likeService" class="com.sam_solutions.app.service.LikeService" />
+
+    <bean name="postProfileDtoToPostConverter" class="com.sam_solutions.app.converter.PostProfileDtoToPostConverter" />
+    <bean name="postFeedDtoToPostConverter" class="com.sam_solutions.app.converter.PostToPostFeedDtoConverter" />
+    <bean name="postToPostProfileDtoConverter" class="com.sam_solutions.app.converter.PostToPostProfileDtoConverter" />
+    <bean name="userRelationDtoToUserRelationConverter" class="com.sam_solutions.app.converter.UserRelationDtoToUserRelationConverter" />
+    <bean name="userRelationToUserRelationDtoConverter" class="com.sam_solutions.app.converter.UserRelationToUserRelationDtoConverter" />
+    <bean name="userSignUpDtoToUserConverter" class="com.sam_solutions.app.converter.UserSignUpDtoToUserConverter" />
+    <bean name="userToUserAdminDtoConverter" class="com.sam_solutions.app.converter.UserToUserAdminDtoConverter" />
+    <bean name="userToUserFeedDtoConverter" class="com.sam_solutions.app.converter.UserToUserFeedDtoConverter" />
+    <bean name="userToUserFollowingDtoConverter" class="com.sam_solutions.app.converter.UserToUserFollowingDtoConverter" />
+    <bean name="userToUserProfileDtoConverter" class="com.sam_solutions.app.converter.UserToUserProfileDtoConverter" />
+    <bean name="userToUserSearchDtoConverter" class="com.sam_solutions.app.converter.UserToUserSearchDtoConverter" />
+    <bean name="userToUserSettingsDtoConverter" class="com.sam_solutions.app.converter.UserToUserSettingsDtoConverter" />
+
+    <bean name="authorizationUtils" class="com.sam_solutions.app.utils.AuthorizationUtils" />
+    <bean name="fileUtils" class="com.sam_solutions.app.utils.FileUtils" />
+    <bean name="permissionUtils" class="com.sam_solutions.app.utils.PermissionUtils" />
+    <bean name="notificationUtils" class="com.sam_solutions.app.utils.NotificationUtils" init-method="start"/>
+
+    <jdbc:initialize-database data-source="dataSource">
+        <jdbc:script location="classpath:script/sql/database.sql"/>
+        <jdbc:script location="classpath:script/sql/data.sql"/>
+    </jdbc:initialize-database>
+
+    <bean id="entityManagerFactory"
+          class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+        <property name="persistenceXmlLocation" value="classpath:META-INF/persistence.xml" />
+        <property name="persistenceUnitName" value="entityManager" />
+        <property name="dataSource" ref="dataSource" />
+    </bean>
+
+    <bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
+        <property name="entityManagerFactory" ref="entityManagerFactory" />
+    </bean>
+    <tx:annotation-driven />
+
+    <mvc:resources mapping="/resources/**" location="/resources/" />
+    <mvc:default-servlet-handler/>
+
+</beans>
